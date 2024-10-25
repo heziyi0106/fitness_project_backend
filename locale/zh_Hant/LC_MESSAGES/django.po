@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-24 17:24+0800\n"
+"POT-Creation-Date: 2024-10-25 03:07+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,55 +16,63 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-
-#: backend/settings.py:124
+"Plural-Forms: nplurals=1; plural=0;\n"
+#: backend/settings.py:132
 msgid "Traditional Chinese"
 msgstr "繁體中文"
 
-#: exercise/models.py:16
+#: exercise/models.py:20
 msgid "Muscle Gain"
 msgstr "增肌"
 
-#: exercise/models.py:17
+#: exercise/models.py:21
 msgid "Fat Loss"
 msgstr "減脂"
 
-#: exercise/models.py:18
+#: exercise/models.py:22
 msgid "Endurance"
 msgstr "耐力"
 
-#: exercise/models.py:19
+#: exercise/models.py:23
 msgid "Flexibility"
-msgstr "柔韌性"
+msgstr "柔軟度"
 
-#: exercise/models.py:20
+#: exercise/models.py:24
 msgid "General Fitness"
 msgstr "綜合健身"
 
-#: exercise/models.py:32
+#: exercise/models.py:50
 msgid "Chest"
 msgstr "胸部"
 
-#: exercise/models.py:33
+#: exercise/models.py:51
 msgid "Back"
 msgstr "背部"
 
-#: exercise/models.py:34
+#: exercise/models.py:52
 msgid "Legs"
 msgstr "腿部"
 
-#: exercise/models.py:35
+#: exercise/models.py:53
 msgid "Shoulders"
 msgstr "肩膀"
 
-#: exercise/models.py:36
+#: exercise/models.py:54
 msgid "Arms"
 msgstr "手臂"
 
-#: exercise/models.py:37
+#: exercise/models.py:55
 msgid "Core"
-msgstr "核心運動"
+msgstr "核心"
 
-#: exercise/models.py:38
+#: exercise/models.py:56
 msgid "Full Body"
-msgstr "全身運動"
+msgstr "全身"
+
+#: exercise/models.py:61
+msgid "Single Joint"
+msgstr "單關節運動"
+
+#: exercise/models.py:62
+msgid "Multi Joint"
+msgstr "多關節運動"
