@@ -1,6 +1,25 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+class BodyComposition(models.Model):
+    """
+    身體組成數據
+    """
+
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)  # 假設會關聯到使用者模型
+    weight = models.FloatField(help_text="體重（公斤）", default=0.0)
+    body_fat_percentage = models.FloatField(help_text="體脂率（百分比）", default=0.0)
+    muscle_mass = models.FloatField(help_text="肌肉量（公斤）", default=0.0)
+    bmi = models.FloatField(help_text="身體質量指數", default=0.0)
+    visceral_fat = models.FloatField(help_text="內臟脂肪等級", default=0.0)
+    waist_circumference = models.FloatField(help_text="腰圍（公分）", default=0.0)
+    hip_circumference = models.FloatField(help_text="臀圍（公分）", default=0.0)
+
+    measured_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Body Composition for {self.user.username} at {self.measured_at}"
+
 class ExerciseType(models.Model):
     """
     運動類型模型，定義不同的運動類別。
