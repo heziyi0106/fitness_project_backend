@@ -27,7 +27,8 @@ class Exercise(models.Model):
     name = models.CharField(max_length=100)
     goal = models.CharField(max_length=20, choices=GOAL_CHOICES, default='general_fitness')
     total_duration = models.PositiveIntegerField(help_text="Total duration in minutes", default=0)
-    exercise_type = models.ForeignKey(ExerciseType, on_delete=models.CASCADE)
+    # 將 ForeignKey 改為 ManyToManyField 以支持多個運動類型
+    exercise_type = models.ManyToManyField(ExerciseType, blank=True)
 
     def __str__(self):
         return self.name
