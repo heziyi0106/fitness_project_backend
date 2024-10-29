@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -39,9 +40,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'exercise',
+    'accounts',
+    'rest_framework',
+    'rest_framework.authtoken',
+    # 允許前端跨網域訪問api
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -50,7 +57,18 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'accounts.authentication.ExpiringTokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}
 
 ROOT_URLCONF = 'backend.urls'
 
@@ -83,12 +101,12 @@ DATABASES = {
     #     'NAME': BASE_DIR / 'db.sqlite3',
     # }
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',  # 使用 PostgreSQL 数据库
-        'NAME': 'fitness_project',               # 替换为你在 PostgreSQL 中创建的数据库名称
-        'USER': 'postgres',                    # 替换为你创建的 PostgreSQL 用户名
-        'PASSWORD': 'fitwendy0727',                # 替换为你创建的 PostgreSQL 用户的密码
-        'HOST': 'localhost',                        # 如果数据库在本地运行，可以使用 'localhost'
-        'PORT': '5432',                             # PostgreSQL 的默认端口是 5432
+        'ENGINE': 'django.db.backends.postgresql',  # 使用 PostgreSQL 資料庫
+        'NAME': 'fitness_project',               # 替換為你在 PostgreSQL 中建立的資料庫名稱
+        'USER': 'postgres',                    # 替換為你建立的 PostgreSQL 使用者名稱
+        'PASSWORD': 'fitwendy0727',                # 替換為你建立的 PostgreSQL 使用者的密碼
+        'HOST': 'localhost',                        # 如果資料庫在本地運行，可以使用 'localhost'
+        'PORT': '5432',                             # PostgreSQL 的預設端口是 5432
     }
 }
 
@@ -149,3 +167,16 @@ LOCALE_PATHS = (
     os.path.join(BASE_DIR, 'locale'),
 )
 
+# Token 過期時間設定（hours, minutes, seconds）
+TOKEN_EXPIRATION_TIME = timedelta(minutes=10)
+
+CORS_ALLOW_ALL_ORIGINS = True
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]

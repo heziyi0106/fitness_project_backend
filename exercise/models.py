@@ -1,24 +1,54 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django.core.exceptions import ValidationError
+from django.contrib.auth.models import User
 
 class BodyComposition(models.Model):
     """
     身體組成數據
     """
-
-    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)  # 假設會關聯到使用者模型
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  # 假設會關聯到使用者模型
+    # 體重器可以測
+    height = models.FloatField(help_text="身高（公分）", default=0.0)
     weight = models.FloatField(help_text="體重（公斤）", default=0.0)
     body_fat_percentage = models.FloatField(help_text="體脂率（百分比）", default=0.0)
     muscle_mass = models.FloatField(help_text="肌肉量（公斤）", default=0.0)
-    bmi = models.FloatField(help_text="身體質量指數", default=0.0)
+    bmi = models.FloatField(help_text="身體質量指數", default=0.0, null=True, blank=True)
     visceral_fat = models.FloatField(help_text="內臟脂肪等級", default=0.0)
+    basal_metabolic_rate = models.IntegerField(help_text="基礎代謝率 (kcal/day)", blank=True, null=True)
+    # 身體圍度 
     waist_circumference = models.FloatField(help_text="腰圍（公分）", default=0.0)
     hip_circumference = models.FloatField(help_text="臀圍（公分）", default=0.0)
+    chest_circumference = models.FloatField(help_text="胸圍（公分）", default=0.0)
+    shoulder_circumference = models.FloatField(help_text="肩围 (cm)", null=True, blank=True)
+    upper_arm_circumference = models.FloatField(help_text="上臂圍 (公分)", null=True, blank=True)
+    lower_arm_circumference = models.FloatField(help_text="下臂圍 (公分)", null=True, blank=True)
+    thigh_circumference = models.FloatField(help_text="大腿圍 (公分)", null=True, blank=True)
+    calf_circumference = models.FloatField(help_text="小腿圍 (公分)", null=True, blank=True)
 
     measured_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Body Composition for {self.user.username} at {self.measured_at}"
+
+    def clean(self):
+        """
+        自定義驗證，確保身高和體重的合理範圍
+        """
+        if self.height <= 0 or self.height > 250:
+            raise ValidationError("身高數值不合理，應該在 0cm 到 250cm 之間。")
+        if self.weight <= 0 or self.weight > 300:
+            raise ValidationError("體重數值不合理，應該在 0kg 到 300kg 之間。")
+        
+        # 确保在调用 save() 前执行 clean()
+        super().clean()
+
+    def calculate_bmi(self):
+        """
+        根據體重和身高計算 BMI，需從使用者數據中獲取身高
+        """
+        self.bmi = self.weight / ((self.height / 100) ** 2)  # 身高轉換為公尺來計算 BMI
+        return self.bmi
 
 class ExerciseType(models.Model):
     """
@@ -42,15 +72,20 @@ class Exercise(models.Model):
         ('flexibility', _('Flexibility')),
         ('general_fitness', _('General Fitness')),
     ]
-
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
-    goal = models.CharField(max_length=20, choices=GOAL_CHOICES, default='general_fitness')
-    total_duration = models.PositiveIntegerField(help_text="Total duration in minutes", default=0)
-    # 將 ForeignKey 改為 ManyToManyField 以支持多個運動類型
+    goal = models.CharField(max_length=20, choices=GOAL_CHOICES, default='綜合健身')
+    total_duration = models.PositiveIntegerField(help_text="運動總時間", default=0)    
     exercise_type = models.ManyToManyField(ExerciseType, blank=True)
+    # 新增欄位，儲存由使用者手動輸入的卡路里消耗
+    manual_calories_burned = models.FloatField(help_text="手動輸入的熱量消耗（大卡）", null=True, blank=True)
+    # 自動計算的卡路里消耗
+    calculated_calories_burned = models.FloatField(help_text="自動計算的熱量消耗（大卡）", default=0.0)
+    scheduled_date = models.DateField(help_text="運動計劃的安排日期")
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.name
+        return f"{self.name} on {self.scheduled_date}"
     
     def update_total_duration(self):
         """
@@ -60,6 +95,57 @@ class Exercise(models.Model):
         total_seconds = sum([exercise_set.total_duration() for exercise_set in self.sets.all()])
         self.total_duration = total_seconds // 60  # 將秒數轉換為分鐘
         self.save()  # 保存更新到資料庫
+
+    def get_met_value(self):
+        """
+        根據不同的運動類型設置不同的 MET 值
+        """
+        met_values = {
+            '力量訓練': 6.0,
+            '有氧運動': 8.0,
+            '核心訓練': 5.0,
+            '柔韌性訓練': 3.0,
+            '平衡訓練': 2.5,
+        }
+        met_sum = 0
+        type_count = self.exercise_type.count()
+        for ex_type in self.exercise_type.all():
+            met_sum += met_values.get(ex_type.name, 8.0)  # 默認為 8.0
+        return met_sum / type_count if type_count > 0 else 8.0
+
+    def calculate_calories(self, weight):
+        """
+        根據運動的類型、時間和使用者的體重計算總熱量消耗
+        """
+        met_value = self.get_met_value()  # 取得根據運動類型計算的 MET 值
+        calories_per_minute = met_value * weight * 3.5 / 200
+        total_calories = calories_per_minute * self.total_duration
+        self.calculated_calories_burned = total_calories
+        return total_calories
+
+    def get_calories_burned(self):
+        """
+        返回最終的熱量消耗，優先使用手動輸入的數值，否則使用自動計算的值
+        """
+        if self.manual_calories_burned is not None:
+            return self.manual_calories_burned
+        return self.calculated_calories_burned
+
+    def calculate_weight_loss(self):
+        """
+        根據消耗的熱量來計算可以減少的體重（每消耗 7700 大卡減少 1 公斤）
+        """
+        total_calories_burned = self.get_calories_burned()
+        if total_calories_burned > 0:
+            return total_calories_burned / 7700
+        return 0
+
+    def save(self, *args, **kwargs):
+        # 在保存之前根據使用者的體重計算熱量消耗
+        if self.manual_calories_burned is None:  # 只有在用戶未手動輸入時才進行計算
+            user_weight = self.user.bodycomposition.weight  # 假設從關聯的使用者模型中取得體重
+            self.calculate_calories(user_weight)
+        super().save(*args, **kwargs)
 
 class ExerciseSet(models.Model):
     """
