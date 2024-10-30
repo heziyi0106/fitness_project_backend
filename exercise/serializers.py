@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Exercise, ExerciseSet, SetDetail
+from .models import Exercise, ExerciseSet, SetDetail, BodyComposition
 
 class ExerciseSerializer(serializers.ModelSerializer):
     sets = serializers.SerializerMethodField()
@@ -30,3 +30,8 @@ class ExerciseSerializer(serializers.ModelSerializer):
                 ]
             })
         return result
+    
+class BodyCompositionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BodyComposition
+        fields = '__all__'

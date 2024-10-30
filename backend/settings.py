@@ -168,7 +168,7 @@ LOCALE_PATHS = (
 )
 
 # Token 過期時間設定（hours, minutes, seconds）
-TOKEN_EXPIRATION_TIME = timedelta(minutes=10)
+TOKEN_EXPIRATION_TIME = timedelta(seconds=500)
 
 CORS_ALLOW_ALL_ORIGINS = True
 
