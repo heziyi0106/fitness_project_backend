@@ -1,0 +1,35 @@
+psql -U postgres -d fitness_project 以某使用者登入資料庫
+
+\l 查看所有資料庫
+
+\c <資料庫名> 切換到其他資料庫(沒有斷開當前連線的指令)
+
+\du 查看所有使用者
+
+\dt 查看所有資料表
+
+\d <表名> 查看資料表的結構
+
+\q 退出psql
+
+DROP TABLE <表名>; 刪除某張資料表
+
+DROP DATABASE fitness_project; 刪除資料庫
+
+CREATE DATABASE fitness_project; 建立資料庫
+
+********* 動態刪除所有表的 sql 語句 *********
+DO $$ DECLARE
+    r RECORD;
+BEGIN
+    FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+        EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE';
+    END LOOP;
+END $$;
+*********************************************
+
+pip freeze > requirements.txt 導出環境中安裝的所有套件
+
+pip install -r requirements.txt 安裝文件中的所有套件
+
+npm install 安裝前端環境的套件

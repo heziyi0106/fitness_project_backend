@@ -104,7 +104,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',  # 使用 PostgreSQL 資料庫
         'NAME': 'fitness_project',               # 替換為你在 PostgreSQL 中建立的資料庫名稱
         'USER': 'postgres',                    # 替換為你建立的 PostgreSQL 使用者名稱
-        'PASSWORD': 'fitness_wendy',                # 替換為你建立的 PostgreSQL 使用者的密碼
+        'PASSWORD': 'fitwendy0727',                # 替換為你建立的 PostgreSQL 使用者的密碼(新:fitness_wendy)
         'HOST': 'localhost',                        # 如果資料庫在本地運行，可以使用 'localhost'
         'PORT': '5432',                             # PostgreSQL 的預設端口是 5432
     }

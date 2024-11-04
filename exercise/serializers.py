@@ -25,20 +25,39 @@ class SetDetailSerializer(serializers.ModelSerializer):
 
 class ExerciseSetSerializer(serializers.ModelSerializer):
     details = SetDetailSerializer(many=True)
+    body_part = serializers.IntegerField()  # 接收數字值
+    joint_type = serializers.IntegerField()  # 接收數字值
 
     class Meta:
         model = ExerciseSet
         fields = ['exercise_name', 'body_part', 'joint_type', 'sets', 'details']
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        # 使用字典來將 body_part 和 joint_type 的數字轉換成對應的描述
+        representation['body_part'] = ExerciseSet.BODY_PART_CHOICES.get(instance.body_part, _('Unknown'))
+        representation['joint_type'] = ExerciseSet.JOINT_TYPE_CHOICES.get(instance.joint_type, _('Unknown'))
+        return representation
+
+    # 這裡新增一個 create 方法
     def create(self, validated_data):
         details_data = validated_data.pop('details')
+        sets = validated_data.get('sets')
+        
+        # 檢查 details 的數量是否和 sets 一致
+        if len(details_data) != sets:
+            raise serializers.ValidationError(f"Details 的數量應該等於 sets 的數量 ({sets})。")
+        
         exercise_set = ExerciseSet.objects.create(**validated_data)
+        
         for detail_data in details_data:
             SetDetail.objects.create(exercise_set=exercise_set, **detail_data)
+        
         return exercise_set
 
 class ExerciseSerializer(serializers.ModelSerializer):
     sets = ExerciseSetSerializer(many=True)
+    goal = serializers.IntegerField()  # 直接接收數字
     # exercise_type = ExerciseTypeSerializer(many=True)  # 使用嵌套序列化器顯示詳細資料
     exercise_type = serializers.SlugRelatedField(
         many=True, slug_field="description", queryset=ExerciseType.objects.all()
@@ -51,6 +70,12 @@ class ExerciseSerializer(serializers.ModelSerializer):
             'calculated_calories_burned', 'scheduled_date', 'created_at', 
             'exercise_type', 'sets'
         ]
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        # 將數字目標轉換為文字
+        representation['goal'] = Exercise.GOAL_CHOICES.get(instance.goal, _('Unknown'))
+        return representation
 
     def create(self, validated_data):
         sets_data = validated_data.pop('sets')

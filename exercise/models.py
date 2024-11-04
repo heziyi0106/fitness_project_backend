@@ -46,16 +46,16 @@ class ExerciseType(models.Model):
         return self.name
 
 class Exercise(models.Model):
-    GOAL_CHOICES = [
-        ('muscle_gain', _('Muscle Gain')),
-        ('fat_loss', _('Fat Loss')),
-        ('endurance', _('Endurance')),
-        ('flexibility', _('Flexibility')),
-        ('general_fitness', _('General Fitness')),
-    ]
+    GOAL_CHOICES = {
+        1: _('Muscle Gain'),
+        2: _('Fat Loss'),
+        3: _('Endurance'),
+        4: _('Flexibility'),
+        5: _('General Fitness'),
+    }    
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
-    goal = models.CharField(max_length=20, choices=GOAL_CHOICES, default='general_fitness')
+    goal = models.IntegerField(choices=list(GOAL_CHOICES.items()), default=5)
     total_duration = models.PositiveIntegerField(help_text="運動總時間", default=0)    
     exercise_type = models.ManyToManyField(ExerciseType, blank=True)
     manual_calories_burned = models.FloatField(help_text="手動輸入的熱量消耗（大卡）", null=True, blank=True)
@@ -74,6 +74,10 @@ class Exercise(models.Model):
         total_seconds = sum(exercise_set.total_duration() for exercise_set in self.sets.all())
         self.total_duration = total_seconds // 60  # 將秒數轉換為分鐘
         self.save()  # 保存更新到資料庫
+    
+    @property
+    def get_goal_display(self):
+        return self.GOAL_CHOICES.get(self.goal, _('Unknown'))
 
     @property
     def get_met_value(self):
@@ -94,16 +98,24 @@ class Exercise(models.Model):
         return self.manual_calories_burned or self.calculated_calories_burned
 
 class ExerciseSet(models.Model):
-    BODY_PART_CHOICES = [
-        ('chest', _('Chest')), ('back', _('Back')), ('legs', _('Legs')),
-        ('shoulders', _('Shoulders')), ('arms', _('Arms')), ('core', _('Core')), ('full_body', _('Full Body'))
-    ]
-    JOINT_TYPE_CHOICES = [('single_joint', _('Single Joint')), ('multi_joint', _('Multi Joint'))]
+    BODY_PART_CHOICES = {
+        1: _('Chest'),
+        2: _('Back'),
+        3: _('Legs'),
+        4: _('Shoulders'),
+        5: _('Arms'),
+        6: _('Core'),
+        7: _('Full Body'),
+    }
 
+    JOINT_TYPE_CHOICES = {
+        1: _('Single Joint'),
+        2: _('Multi Joint'),
+    }
     exercise = models.ForeignKey(Exercise, related_name='sets', on_delete=models.CASCADE)
     exercise_name = models.CharField(max_length=100)
-    body_part = models.CharField(max_length=20, choices=BODY_PART_CHOICES, default='full_body')
-    joint_type = models.CharField(max_length=20, choices=JOINT_TYPE_CHOICES, default='multi_joint')
+    body_part = models.CharField(max_length=20, choices=list(BODY_PART_CHOICES.items()), default=7)
+    joint_type = models.CharField(max_length=20, choices=list(JOINT_TYPE_CHOICES.items()), default=2)
     sets = models.PositiveIntegerField()
 
     def total_duration(self):
