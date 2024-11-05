@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import BodyComposition, Exercise, ExerciseSet, SetDetail, ExerciseType, Template
+from django.utils.translation import gettext_lazy as _
 
 class BodyCompositionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -59,9 +60,7 @@ class ExerciseSerializer(serializers.ModelSerializer):
     sets = ExerciseSetSerializer(many=True)
     goal = serializers.IntegerField()  # 直接接收數字
     # exercise_type = ExerciseTypeSerializer(many=True)  # 使用嵌套序列化器顯示詳細資料
-    exercise_type = serializers.SlugRelatedField(
-        many=True, slug_field="description", queryset=ExerciseType.objects.all()
-    )
+    exercise_type = serializers.PrimaryKeyRelatedField(queryset=ExerciseType.objects.all(), many=True)
 
     class Meta:
         model = Exercise
@@ -79,7 +78,7 @@ class ExerciseSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         sets_data = validated_data.pop('sets')
-        exercise_types_data = validated_data.pop('exercise_type')
+        exercise_types_data = validated_data.pop('exercise_type')  # 這裡是 ID 列表
         exercise = Exercise.objects.create(**validated_data)
         exercise.exercise_type.set(exercise_types_data)
 
