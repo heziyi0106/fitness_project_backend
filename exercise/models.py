@@ -32,11 +32,13 @@ class BodyComposition(models.Model):
             raise ValidationError("體重數值不合理，應該在 0kg 到 300kg 之間。")
         super().clean()
 
-    @property
-    def calculate_bmi(self):
+    def save(self, *args, **kwargs):
+        # 計算 BMI 並保存到 bmi 字段
         if self.height > 0:
-            return self.weight / ((self.height / 100) ** 2)
-        return 0.0
+            self.bmi = self.weight / ((self.height / 100) ** 2)
+        else:
+            self.bmi = 0.0
+        super().save(*args, **kwargs)
 
 class ExerciseType(models.Model):
     name = models.CharField(max_length=100)

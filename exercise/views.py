@@ -60,8 +60,20 @@ class WeeklyPlansView(APIView):
         else:
             return Response([])
 
+class CreateExercisePlanView(generics.CreateAPIView):
+    serializer_class = ExerciseSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
-class BodyCompositionView(APIView):
+    def perform_create(self, serializer):
+        # 在保存計劃時自動將當前用戶設為計劃的擁有者
+        serializer.save(user=self.request.user)
+
+        # 返回成功創建的響應
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+class BodyCompositionDetailView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
@@ -79,16 +91,16 @@ class BodyCompositionView(APIView):
         else:
             return Response({})
         
+    def post(self, request):
+        """
+        創建或更新當前用戶的身體組成數據
+        """
+        user = request.user
+        serializer = BodyCompositionSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            # 使用 validated_data 創建新的 BodyComposition 實例
+            serializer.save(user=user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-class CreateExercisePlanView(generics.CreateAPIView):
-    serializer_class = ExerciseSerializer
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    def perform_create(self, serializer):
-        # 在保存計劃時自動將當前用戶設為計劃的擁有者
-        serializer.save(user=self.request.user)
-
-        # 返回成功創建的響應
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -14,6 +14,20 @@ class BodyCompositionSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['bmi']
 
+    def create(self, validated_data):
+        if validated_data.get('height') > 0:
+            validated_data['bmi'] = validated_data['weight'] / ((validated_data['height'] / 100) ** 2)
+        else:
+            validated_data['bmi'] = 0.0
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        if validated_data.get('height', instance.height) > 0:
+            validated_data['bmi'] = validated_data.get('weight', instance.weight) / ((validated_data.get('height', instance.height) / 100) ** 2)
+        else:
+            validated_data['bmi'] = 0.0
+        return super().update(instance, validated_data)
+
 class ExerciseTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ExerciseType
