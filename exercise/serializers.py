@@ -84,9 +84,14 @@ class ExerciseSerializer(serializers.ModelSerializer):
 
         for set_data in sets_data:
             details_data = set_data.pop('details')
+            # 先創建 ExerciseSet
             exercise_set = ExerciseSet.objects.create(exercise=exercise, **set_data)
+            # 創建 SetDetail
             for detail_data in details_data:
                 SetDetail.objects.create(exercise_set=exercise_set, **detail_data)
+            # 更新 sets 的值為 details 的數量
+            exercise_set.sets = len(details_data)
+            exercise_set.save()
 
         return exercise
 
@@ -105,11 +110,14 @@ class ExerciseSerializer(serializers.ModelSerializer):
             instance.sets.all().delete()
             for set_data in sets_data:
                 details_data = set_data.pop('details')
+                # 更新 sets 為 details 的數量
+                set_data['sets'] = len(details_data)
                 exercise_set = ExerciseSet.objects.create(exercise=instance, **set_data)
                 for detail_data in details_data:
                     SetDetail.objects.create(exercise_set=exercise_set, **detail_data)
 
         return instance
+
 
 class TemplateSerializer(serializers.ModelSerializer):
     exercises = ExerciseSerializer(many=True)

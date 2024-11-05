@@ -33,3 +33,11 @@ pip freeze > requirements.txt 導出環境中安裝的所有套件
 pip install -r requirements.txt 安裝文件中的所有套件
 
 npm install 安裝前端環境的套件
+
+### shell指令，於重建資料庫時第一手動作
+from exercise.models import *
+ExerciseType.objects.create(id=1, name='重量訓練')
+ExerciseType.objects.create(id=2, name='有氧訓練')
+ExerciseType.objects.create(id=3, name='核心訓練')
+ExerciseType.objects.create(id=4, name='柔韌性訓練')
+ExerciseType.objects.create(id=5, name='平衡訓練')

@@ -122,7 +122,11 @@ class ExerciseSet(models.Model):
         return sum(detail.calculate_time for detail in self.details.all())
     
     def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
+        # 初次保存，不更新 sets 的值
+        if not self.pk:
+            super().save(*args, **kwargs)
+        # 已有主鍵後再更新 sets 值
+        self.sets = self.details.count()
         self.exercise.update_total_duration()
 
 class SetDetail(models.Model):
