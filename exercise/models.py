@@ -63,6 +63,7 @@ class Exercise(models.Model):
     manual_calories_burned = models.FloatField(help_text="手動輸入的熱量消耗（大卡）", null=True, blank=True)
     calculated_calories_burned = models.FloatField(help_text="自動計算的熱量消耗（大卡）", default=0.0)
     scheduled_date = models.DateField(help_text="運動計劃的安排日期")
+    scheduled_time = models.TimeField(help_text="運動計劃的具體時間", null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -158,25 +159,40 @@ class Template(models.Model):
     def __str__(self):
         return f"Template: {self.name}"
 
-def save_as_template(exercise_ids, template_name):
+def save_as_template(exercise_ids, template_name, user):
+    exercises = Exercise.objects.filter(id__in=exercise_ids, user=user)
+    if not exercises.exists():
+        raise ValidationError("沒有符合條件的運動記錄")
     template = Template.objects.create(name=template_name)
-    template.exercises.set(Exercise.objects.filter(id__in=exercise_ids).select_related('user'))
+    template.exercises.set(exercises)
     return template
 
-def create_from_template(template_id):
+def create_from_template(template_id, user):
     template = Template.objects.prefetch_related('exercises__sets__details').get(id=template_id)
     new_exercises = []
     for exercise in template.exercises.all():
         new_exercise = Exercise.objects.create(
-            name=exercise.name, total_duration=exercise.total_duration, goal=exercise.goal
+            name=exercise.name,
+            total_duration=exercise.total_duration,
+            goal=exercise.goal,
+            user=user  # 將新計劃的用戶設置為當前用戶
         )
         for exercise_set in exercise.sets.all():
             new_exercise_set = ExerciseSet.objects.create(
-                exercise=new_exercise, exercise_name=exercise_set.exercise_name, body_part=exercise_set.body_part
+                exercise=new_exercise,
+                exercise_name=exercise_set.exercise_name,
+                body_part=exercise_set.body_part
             )
             SetDetail.objects.bulk_create([
-                SetDetail(exercise_set=new_exercise_set, reps=detail.reps, weight=detail.weight, actual_duration=detail.actual_duration)
+                SetDetail(
+                    exercise_set=new_exercise_set,
+                    reps=detail.reps,
+                    weight=detail.weight,
+                    actual_duration=detail.actual_duration,
+                    rest_time=detail.rest_time
+                )
                 for detail in exercise_set.details.all()
             ])
         new_exercises.append(new_exercise)
     return new_exercises
+

@@ -134,9 +134,10 @@ class ExerciseSerializer(serializers.ModelSerializer):
 
 
 class TemplateSerializer(serializers.ModelSerializer):
-    exercises = ExerciseSerializer(many=True)
+    exercises = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
     class Meta:
         model = Template
         fields = ['id', 'name', 'exercises', 'created_at', 'updated_at']
+
 
