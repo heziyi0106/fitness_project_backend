@@ -43,8 +43,9 @@ INSTALLED_APPS = [
     'accounts',
     'rest_framework',
     'rest_framework.authtoken',
-    # 允許前端跨網域訪問api
     'corsheaders',
+    'tinymce',
+    'workout_journal',
 ]
 
 MIDDLEWARE = [
@@ -180,3 +181,10 @@ CORS_ALLOW_METHODS = [
     'POST',
     'PUT',
 ]
+
+# 富文本配置
+TINYMCE_DEFAULT_CONFIG = {
+    'theme': 'advanced',
+    'width': 600,
+    'height': 400
+}
